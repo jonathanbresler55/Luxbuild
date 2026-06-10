@@ -1,8 +1,9 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import NewProjectDialog from "@/components/dialogs/NewProjectDialog";
-import { getProjects } from "@/app/actions/projects";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { FolderOpen, Calendar, User } from "lucide-react";
+import { FolderOpen, Calendar, User, DollarSign } from "lucide-react";
 
 const estadoConfig: Record<string, { label: string; color: string }> = {
   planificacion: { label: "Planificación",  color: "bg-zinc-100 text-zinc-600" },
@@ -12,9 +13,12 @@ const estadoConfig: Record<string, { label: string; color: string }> = {
   cancelado:     { label: "Cancelado",       color: "bg-red-100 text-red-700" },
 };
 
-export default async function ProjectsPage() {
-  let projects: any[] = [];
-  try { projects = await getProjects(); } catch {}
+export default function ProjectsPage() {
+  const [projects, setProjects] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch("/api/projects").then((r) => r.json()).then(setProjects).catch(() => {});
+  }, []);
 
   return (
     <div className="p-7 space-y-6">
@@ -23,7 +27,7 @@ export default async function ProjectsPage() {
           <h1 className="text-[22px] font-bold text-zinc-900 tracking-tight">Proyectos</h1>
           <p className="text-sm text-zinc-500 mt-0.5">Todos los proyectos de construcción LUXBUILD</p>
         </div>
-        <NewProjectDialog />
+        <NewProjectDialog onCreated={() => fetch("/api/projects").then((r) => r.json()).then(setProjects).catch(() => {})} />
       </div>
 
       {/* Status summary */}
@@ -39,7 +43,6 @@ export default async function ProjectsPage() {
         })}
       </div>
 
-      {/* Project cards */}
       {projects.length === 0 ? (
         <div className="bg-white rounded-2xl border-2 border-dashed border-zinc-200 flex flex-col items-center justify-center py-20">
           <FolderOpen className="text-zinc-200 mb-3" size={44} />
@@ -54,12 +57,12 @@ export default async function ProjectsPage() {
               <div key={p.id} className="bg-white rounded-2xl p-5 shadow-sm border border-zinc-100 hover:shadow-md transition-shadow cursor-pointer">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <p className="text-[11px] text-zinc-400 font-medium">{p.numero}</p>
+                    <p className="text-[11px] text-zinc-400 font-mono">{p.numero}</p>
                     <p className="font-semibold text-zinc-900 mt-0.5">{p.nombre}</p>
                   </div>
                   <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${cfg.color}`}>{cfg.label}</span>
                 </div>
-                <div className="space-y-2 mb-4">
+                <div className="space-y-1.5 mb-4">
                   <div className="flex justify-between text-xs text-zinc-500">
                     <span>Avance real</span>
                     <span className="font-semibold text-zinc-700">{p.avance_real ?? 0}%</span>
@@ -67,15 +70,9 @@ export default async function ProjectsPage() {
                   <Progress value={p.avance_real ?? 0} className="h-1.5" />
                 </div>
                 <div className="flex items-center gap-4 text-xs text-zinc-400">
-                  {p.responsable && (
-                    <span className="flex items-center gap-1"><User size={11} />{p.responsable}</span>
-                  )}
-                  {p.fecha_inicio && (
-                    <span className="flex items-center gap-1"><Calendar size={11} />{new Date(p.fecha_inicio).toLocaleDateString("es-PA")}</span>
-                  )}
-                  {p.presupuesto && (
-                    <span className="ml-auto font-semibold text-zinc-700">${Number(p.presupuesto).toLocaleString()}</span>
-                  )}
+                  {p.responsable && <span className="flex items-center gap-1"><User size={11} />{p.responsable}</span>}
+                  {p.fecha_inicio && <span className="flex items-center gap-1"><Calendar size={11} />{new Date(p.fecha_inicio).toLocaleDateString("es-PA")}</span>}
+                  {p.presupuesto && <span className="ml-auto font-semibold text-zinc-800 flex items-center gap-0.5"><DollarSign size={11} />{Number(p.presupuesto).toLocaleString()}</span>}
                 </div>
               </div>
             );

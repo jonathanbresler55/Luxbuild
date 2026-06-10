@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { createCliente } from "@/app/actions/clients";
 import { toast } from "sonner";
 import { Plus, Loader2 } from "lucide-react";
 
-export default function NewClientDialog() {
+interface Props { onCreated?: () => void; }
+
+export default function NewClientDialog({ onCreated }: Props) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ nombre: "", contacto: "", email: "", telefono: "", empresa: "", notas: "" });
@@ -21,17 +22,17 @@ export default function NewClientDialog() {
     if (!form.nombre.trim()) return;
     setLoading(true);
     try {
-      await createCliente({
-        nombre: form.nombre,
-        contacto: form.contacto || undefined,
-        email: form.email || undefined,
-        telefono: form.telefono || undefined,
-        empresa: form.empresa || undefined,
-        notas: form.notas || undefined,
+      const res = await fetch("/api/clients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre: form.nombre, contacto: form.contacto || null, email: form.email || null, telefono: form.telefono || null, empresa: form.empresa || null, notas: form.notas || null }),
       });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
       toast.success("Cliente agregado exitosamente");
       setOpen(false);
       setForm({ nombre: "", contacto: "", email: "", telefono: "", empresa: "", notas: "" });
+      onCreated?.();
     } catch (err: any) {
       toast.error(err.message ?? "Error al crear el cliente");
     } finally {
@@ -44,12 +45,9 @@ export default function NewClientDialog() {
       <Button onClick={() => setOpen(true)} className="bg-[#c9a566] hover:bg-[#b8914f] text-[#0e0f14] font-semibold">
         <Plus size={15} className="mr-1.5" /> Nuevo Cliente
       </Button>
-
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Nuevo Cliente</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Nuevo Cliente</DialogTitle></DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4 pt-2">
             <div className="space-y-1.5">
               <Label>Nombre completo *</Label>
@@ -61,7 +59,7 @@ export default function NewClientDialog() {
                 <Input placeholder="Nombre de empresa" value={form.empresa} onChange={(e) => set("empresa", e.target.value)} />
               </div>
               <div className="space-y-1.5">
-                <Label>Contacto / Cargo</Label>
+                <Label>Cargo</Label>
                 <Input placeholder="Ej. Gerente General" value={form.contacto} onChange={(e) => set("contacto", e.target.value)} />
               </div>
             </div>

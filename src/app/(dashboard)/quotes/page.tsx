@@ -1,7 +1,9 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import NewQuoteDialog from "@/components/dialogs/NewQuoteDialog";
-import { getCotizaciones } from "@/app/actions/quotes";
 import { Button } from "@/components/ui/button";
-import { FileText, Upload, Sparkles, ArrowRight, Calendar } from "lucide-react";
+import { FileText, Upload, Sparkles } from "lucide-react";
 
 const estadoConfig: Record<string, { label: string; color: string }> = {
   borrador:    { label: "Borrador",    color: "bg-zinc-100 text-zinc-600" },
@@ -11,11 +13,11 @@ const estadoConfig: Record<string, { label: string; color: string }> = {
   perdida:     { label: "Perdida",     color: "bg-red-100 text-red-700" },
 };
 
-export default async function QuotesPage() {
-  let quotes: any[] = [];
-  try { quotes = await getCotizaciones(); } catch {}
+export default function QuotesPage() {
+  const [quotes, setQuotes] = useState<any[]>([]);
+  const reload = () => fetch("/api/quotes").then((r) => r.json()).then(setQuotes).catch(() => {});
 
-  const countByEstado = (e: string) => quotes.filter((q) => q.estado === e).length;
+  useEffect(() => { reload(); }, []);
 
   return (
     <div className="p-7 space-y-6">
@@ -25,10 +27,10 @@ export default async function QuotesPage() {
           <p className="text-sm text-zinc-500 mt-0.5">Presupuestos y propuestas comerciales</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="text-zinc-600">
+          <Button variant="outline" size="sm">
             <Upload size={14} className="mr-1.5" /> Analizar Planos (AI)
           </Button>
-          <NewQuoteDialog />
+          <NewQuoteDialog onCreated={reload} />
         </div>
       </div>
 
@@ -37,7 +39,7 @@ export default async function QuotesPage() {
         {Object.entries(estadoConfig).map(([key, { label, color }]) => (
           <div key={key} className="bg-white rounded-xl p-4 text-center shadow-sm border border-zinc-100">
             <div className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold mb-2 ${color}`}>{label}</div>
-            <p className="text-2xl font-bold text-zinc-900">{countByEstado(key)}</p>
+            <p className="text-2xl font-bold text-zinc-900">{quotes.filter((q) => q.estado === key).length}</p>
           </div>
         ))}
       </div>
@@ -49,11 +51,9 @@ export default async function QuotesPage() {
         </div>
         <div className="flex-1">
           <p className="font-semibold text-sm text-zinc-800">Estimador AI</p>
-          <p className="text-xs text-zinc-500 mt-0.5">Sube planos y la AI genera las partidas de cotización con precios del mercado de Panamá.</p>
+          <p className="text-xs text-zinc-500 mt-0.5">Sube planos y la AI genera las partidas con precios del mercado de Panamá.</p>
         </div>
-        <Button size="sm" variant="outline" className="border-[#c9a566]/40 text-[#c9a566] shrink-0">
-          Subir planos
-        </Button>
+        <Button size="sm" variant="outline" className="border-[#c9a566]/40 text-[#c9a566] shrink-0">Subir planos</Button>
       </div>
 
       {quotes.length === 0 ? (
@@ -78,19 +78,13 @@ export default async function QuotesPage() {
               {quotes.map((q) => {
                 const cfg = estadoConfig[q.estado] ?? estadoConfig.borrador;
                 return (
-                  <tr key={q.id} className="border-b border-zinc-50 hover:bg-zinc-50 cursor-pointer transition-colors">
+                  <tr key={q.id} className="border-b border-zinc-50 hover:bg-zinc-50 cursor-pointer">
                     <td className="px-5 py-3 text-xs text-zinc-400 font-mono">{q.numero}</td>
                     <td className="px-5 py-3 font-medium text-zinc-800">{q.nombre}</td>
                     <td className="px-5 py-3 text-zinc-500">{q.clientes?.nombre ?? "—"}</td>
-                    <td className="px-5 py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${cfg.color}`}>{cfg.label}</span>
-                    </td>
-                    <td className="px-5 py-3 text-right font-semibold text-zinc-800">
-                      {q.monto_total ? `$${Number(q.monto_total).toLocaleString()}` : "—"}
-                    </td>
-                    <td className="px-5 py-3 text-zinc-400 text-xs">
-                      {q.fecha_emision ? new Date(q.fecha_emision).toLocaleDateString("es-PA") : "—"}
-                    </td>
+                    <td className="px-5 py-3"><span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${cfg.color}`}>{cfg.label}</span></td>
+                    <td className="px-5 py-3 text-right font-semibold text-zinc-800">{q.monto_total ? `$${Number(q.monto_total).toLocaleString()}` : "—"}</td>
+                    <td className="px-5 py-3 text-zinc-400 text-xs">{q.fecha_emision ? new Date(q.fecha_emision).toLocaleDateString("es-PA") : "—"}</td>
                   </tr>
                 );
               })}

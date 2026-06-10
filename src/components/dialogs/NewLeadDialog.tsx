@@ -7,13 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { createLead } from "@/app/actions/leads";
 import { toast } from "sonner";
 import { Plus, Loader2 } from "lucide-react";
 
 const fuentes = ["Referido", "Redes Sociales", "Web", "Llamada entrante", "Evento", "Otro"];
 
-export default function NewLeadDialog() {
+interface Props { onCreated?: () => void; }
+
+export default function NewLeadDialog({ onCreated }: Props) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ nombre: "", email: "", telefono: "", fuente: "", valor_estimado: "", notas: "" });
@@ -24,17 +25,17 @@ export default function NewLeadDialog() {
     if (!form.nombre.trim()) return;
     setLoading(true);
     try {
-      await createLead({
-        nombre: form.nombre,
-        email: form.email || undefined,
-        telefono: form.telefono || undefined,
-        fuente: form.fuente || undefined,
-        valor_estimado: form.valor_estimado ? Number(form.valor_estimado) : undefined,
-        notas: form.notas || undefined,
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre: form.nombre, email: form.email || null, telefono: form.telefono || null, fuente: form.fuente || null, valor_estimado: form.valor_estimado ? Number(form.valor_estimado) : null, notas: form.notas || null }),
       });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
       toast.success("Lead registrado exitosamente");
       setOpen(false);
       setForm({ nombre: "", email: "", telefono: "", fuente: "", valor_estimado: "", notas: "" });
+      onCreated?.();
     } catch (err: any) {
       toast.error(err.message ?? "Error al registrar el lead");
     } finally {
@@ -47,12 +48,9 @@ export default function NewLeadDialog() {
       <Button onClick={() => setOpen(true)} className="bg-[#c9a566] hover:bg-[#b8914f] text-[#0e0f14] font-semibold">
         <Plus size={15} className="mr-1.5" /> Nuevo Lead
       </Button>
-
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Nuevo Lead / Oportunidad</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Nuevo Lead / Oportunidad</DialogTitle></DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4 pt-2">
             <div className="space-y-1.5">
               <Label>Nombre del contacto *</Label>
@@ -71,7 +69,7 @@ export default function NewLeadDialog() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label>Fuente</Label>
-                <Select value={form.fuente} onValueChange={(v) => set("fuente", v ?? "")}>
+                <Select value={form.fuente} onValueChange={(v) => set("fuente", v as string)}>
                   <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
                   <SelectContent>
                     {fuentes.map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}

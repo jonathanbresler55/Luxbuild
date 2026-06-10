@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { createCotizacion } from "@/app/actions/quotes";
 import { toast } from "sonner";
 import { Plus, Loader2 } from "lucide-react";
 
-export default function NewQuoteDialog() {
+interface Props { onCreated?: () => void; }
+
+export default function NewQuoteDialog({ onCreated }: Props) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ nombre: "", descripcion: "", fecha_vencimiento: "", notas: "" });
@@ -21,15 +22,17 @@ export default function NewQuoteDialog() {
     if (!form.nombre.trim()) return;
     setLoading(true);
     try {
-      await createCotizacion({
-        nombre: form.nombre,
-        descripcion: form.descripcion || undefined,
-        fecha_vencimiento: form.fecha_vencimiento || undefined,
-        notas: form.notas || undefined,
+      const res = await fetch("/api/quotes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre: form.nombre, descripcion: form.descripcion || null, fecha_vencimiento: form.fecha_vencimiento || null, notas: form.notas || null }),
       });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
       toast.success("Cotización creada exitosamente");
       setOpen(false);
       setForm({ nombre: "", descripcion: "", fecha_vencimiento: "", notas: "" });
+      onCreated?.();
     } catch (err: any) {
       toast.error(err.message ?? "Error al crear la cotización");
     } finally {
@@ -42,12 +45,9 @@ export default function NewQuoteDialog() {
       <Button onClick={() => setOpen(true)} className="bg-[#c9a566] hover:bg-[#b8914f] text-[#0e0f14] font-semibold">
         <Plus size={15} className="mr-1.5" /> Nueva Cotización
       </Button>
-
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Nueva Cotización</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Nueva Cotización</DialogTitle></DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4 pt-2">
             <div className="space-y-1.5">
               <Label>Nombre del proyecto *</Label>
@@ -55,7 +55,7 @@ export default function NewQuoteDialog() {
             </div>
             <div className="space-y-1.5">
               <Label>Descripción / Alcance</Label>
-              <Textarea placeholder="Describe el alcance de la cotización..." value={form.descripcion} onChange={(e) => set("descripcion", e.target.value)} rows={3} />
+              <Textarea placeholder="Describe el alcance..." value={form.descripcion} onChange={(e) => set("descripcion", e.target.value)} rows={3} />
             </div>
             <div className="space-y-1.5">
               <Label>Fecha de vencimiento</Label>

@@ -1,21 +1,23 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import NewLeadDialog from "@/components/dialogs/NewLeadDialog";
-import { getLeads } from "@/app/actions/leads";
-import { Target, DollarSign } from "lucide-react";
+import { Target } from "lucide-react";
 
 const estadoConfig: Record<string, { label: string; color: string }> = {
-  nuevo:      { label: "Nuevo",       color: "bg-zinc-100 text-zinc-600" },
-  contactado: { label: "Contactado",  color: "bg-sky-100 text-sky-700" },
-  calificado: { label: "Calificado",  color: "bg-violet-100 text-violet-700" },
-  propuesta:  { label: "Propuesta",   color: "bg-amber-100 text-amber-700" },
-  ganado:     { label: "Ganado",      color: "bg-emerald-100 text-emerald-700" },
-  perdido:    { label: "Perdido",     color: "bg-red-100 text-red-700" },
+  nuevo:      { label: "Nuevo",      color: "bg-zinc-100 text-zinc-600" },
+  contactado: { label: "Contactado", color: "bg-sky-100 text-sky-700" },
+  calificado: { label: "Calificado", color: "bg-violet-100 text-violet-700" },
+  propuesta:  { label: "Propuesta",  color: "bg-amber-100 text-amber-700" },
+  ganado:     { label: "Ganado",     color: "bg-emerald-100 text-emerald-700" },
+  perdido:    { label: "Perdido",    color: "bg-red-100 text-red-700" },
 };
 
-export default async function LeadsPage() {
-  let leads: any[] = [];
-  try { leads = await getLeads(); } catch {}
+export default function LeadsPage() {
+  const [leads, setLeads] = useState<any[]>([]);
+  const reload = () => fetch("/api/leads").then((r) => r.json()).then(setLeads).catch(() => {});
 
-  const countByEstado = (e: string) => leads.filter((l) => l.estado === e).length;
+  useEffect(() => { reload(); }, []);
 
   return (
     <div className="p-7 space-y-6">
@@ -24,15 +26,14 @@ export default async function LeadsPage() {
           <h1 className="text-[22px] font-bold text-zinc-900 tracking-tight">Leads & Oportunidades</h1>
           <p className="text-sm text-zinc-500 mt-0.5">Pipeline comercial de LUXBUILD</p>
         </div>
-        <NewLeadDialog />
+        <NewLeadDialog onCreated={reload} />
       </div>
 
-      {/* Pipeline summary */}
       <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
         {Object.entries(estadoConfig).map(([key, { label, color }]) => (
           <div key={key} className="bg-white rounded-xl p-4 text-center shadow-sm border border-zinc-100">
             <div className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold mb-2 ${color}`}>{label}</div>
-            <p className="text-2xl font-bold text-zinc-900">{countByEstado(key)}</p>
+            <p className="text-2xl font-bold text-zinc-900">{leads.filter((l) => l.estado === key).length}</p>
           </div>
         ))}
       </div>
@@ -58,16 +59,12 @@ export default async function LeadsPage() {
               {leads.map((l) => {
                 const cfg = estadoConfig[l.estado] ?? estadoConfig.nuevo;
                 return (
-                  <tr key={l.id} className="border-b border-zinc-50 hover:bg-zinc-50 cursor-pointer transition-colors">
+                  <tr key={l.id} className="border-b border-zinc-50 hover:bg-zinc-50 cursor-pointer">
                     <td className="px-5 py-3 font-medium text-zinc-800">{l.nombre}</td>
                     <td className="px-5 py-3 text-zinc-500">{l.email ?? "—"}</td>
                     <td className="px-5 py-3 text-zinc-500">{l.fuente ?? "—"}</td>
-                    <td className="px-5 py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${cfg.color}`}>{cfg.label}</span>
-                    </td>
-                    <td className="px-5 py-3 text-right font-semibold text-zinc-800">
-                      {l.valor_estimado ? `$${Number(l.valor_estimado).toLocaleString()}` : "—"}
-                    </td>
+                    <td className="px-5 py-3"><span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${cfg.color}`}>{cfg.label}</span></td>
+                    <td className="px-5 py-3 text-right font-semibold text-zinc-800">{l.valor_estimado ? `$${Number(l.valor_estimado).toLocaleString()}` : "—"}</td>
                   </tr>
                 );
               })}
