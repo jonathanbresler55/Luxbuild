@@ -1,7 +1,10 @@
+-- ============================================
 -- LUXBUILD Database Schema
+-- Pegar completo en Supabase → SQL Editor → Run
+-- ============================================
 
 -- Clients
-create table clientes (
+create table if not exists clientes (
   id uuid primary key default gen_random_uuid(),
   nombre text not null,
   contacto text,
@@ -12,22 +15,8 @@ create table clientes (
   created_at timestamptz default now()
 );
 
--- Leads / CRM
-create table leads (
-  id uuid primary key default gen_random_uuid(),
-  nombre text not null,
-  cliente_id uuid references clientes(id),
-  email text,
-  telefono text,
-  fuente text,
-  estado text default 'nuevo' check (estado in ('nuevo','contactado','calificado','propuesta','ganado','perdido')),
-  valor_estimado numeric(12,2),
-  notas text,
-  created_at timestamptz default now()
-);
-
--- Quote line item catalog
-create table partidas (
+-- Quote line item catalog (base de precios)
+create table if not exists partidas (
   id uuid primary key default gen_random_uuid(),
   categoria text not null,
   descripcion text not null,
@@ -40,8 +29,8 @@ create table partidas (
   created_at timestamptz default now()
 );
 
--- Quotes
-create table cotizaciones (
+-- Quotes / Cotizaciones
+create table if not exists cotizaciones (
   id uuid primary key default gen_random_uuid(),
   numero text unique not null,
   cliente_id uuid references clientes(id),
@@ -58,7 +47,7 @@ create table cotizaciones (
 );
 
 -- Quote line items
-create table cotizacion_items (
+create table if not exists cotizacion_items (
   id uuid primary key default gen_random_uuid(),
   cotizacion_id uuid references cotizaciones(id) on delete cascade,
   partida_id uuid references partidas(id),
@@ -75,8 +64,8 @@ create table cotizacion_items (
   sort_order int default 0
 );
 
--- Projects (converted from won quotes)
-create table proyectos (
+-- Projects
+create table if not exists proyectos (
   id uuid primary key default gen_random_uuid(),
   numero text unique not null,
   cotizacion_id uuid references cotizaciones(id),
@@ -95,8 +84,8 @@ create table proyectos (
   created_at timestamptz default now()
 );
 
--- Project activities (for schedule / Gantt)
-create table actividades (
+-- Project activities (Gantt / Cronograma)
+create table if not exists actividades (
   id uuid primary key default gen_random_uuid(),
   proyecto_id uuid references proyectos(id) on delete cascade,
   nombre text not null,
@@ -114,8 +103,8 @@ create table actividades (
   sort_order int default 0
 );
 
--- Weekly tracking (Bitácora)
-create table bitacora (
+-- Bitácora (weekly tracking)
+create table if not exists bitacora (
   id uuid primary key default gen_random_uuid(),
   proyecto_id uuid references proyectos(id) on delete cascade,
   actividad_id uuid references actividades(id),
@@ -130,7 +119,7 @@ create table bitacora (
 );
 
 -- Bitácora photos
-create table bitacora_fotos (
+create table if not exists bitacora_fotos (
   id uuid primary key default gen_random_uuid(),
   bitacora_id uuid references bitacora(id) on delete cascade,
   url text not null,
@@ -139,7 +128,7 @@ create table bitacora_fotos (
 );
 
 -- Purchase orders
-create table ordenes_compra (
+create table if not exists ordenes_compra (
   id uuid primary key default gen_random_uuid(),
   numero text unique not null,
   proyecto_id uuid references proyectos(id),
@@ -153,7 +142,7 @@ create table ordenes_compra (
 );
 
 -- Purchase order items
-create table orden_items (
+create table if not exists orden_items (
   id uuid primary key default gen_random_uuid(),
   orden_id uuid references ordenes_compra(id) on delete cascade,
   descripcion text not null,
@@ -164,7 +153,7 @@ create table orden_items (
 );
 
 -- Change orders
-create table ordenes_cambio (
+create table if not exists ordenes_cambio (
   id uuid primary key default gen_random_uuid(),
   numero text unique not null,
   proyecto_id uuid references proyectos(id),
@@ -176,7 +165,7 @@ create table ordenes_cambio (
 );
 
 -- Invoices
-create table facturas (
+create table if not exists facturas (
   id uuid primary key default gen_random_uuid(),
   numero text unique not null,
   proyecto_id uuid references proyectos(id),
@@ -189,7 +178,7 @@ create table facturas (
 );
 
 -- AI analysis log
-create table ai_analisis (
+create table if not exists ai_analisis (
   id uuid primary key default gen_random_uuid(),
   proyecto_id uuid references proyectos(id),
   tipo text check (tipo in ('riesgos','estimado','resumen_semanal','flujo_caja')),
@@ -197,3 +186,34 @@ create table ai_analisis (
   respuesta text,
   created_at timestamptz default now()
 );
+
+-- ============================================
+-- RLS: Habilitar acceso público (sin auth por ahora)
+-- ============================================
+alter table clientes enable row level security;
+alter table cotizaciones enable row level security;
+alter table cotizacion_items enable row level security;
+alter table partidas enable row level security;
+alter table proyectos enable row level security;
+alter table actividades enable row level security;
+alter table bitacora enable row level security;
+alter table bitacora_fotos enable row level security;
+alter table ordenes_compra enable row level security;
+alter table orden_items enable row level security;
+alter table ordenes_cambio enable row level security;
+alter table facturas enable row level security;
+alter table ai_analisis enable row level security;
+
+create policy "public access" on clientes for all using (true) with check (true);
+create policy "public access" on cotizaciones for all using (true) with check (true);
+create policy "public access" on cotizacion_items for all using (true) with check (true);
+create policy "public access" on partidas for all using (true) with check (true);
+create policy "public access" on proyectos for all using (true) with check (true);
+create policy "public access" on actividades for all using (true) with check (true);
+create policy "public access" on bitacora for all using (true) with check (true);
+create policy "public access" on bitacora_fotos for all using (true) with check (true);
+create policy "public access" on ordenes_compra for all using (true) with check (true);
+create policy "public access" on orden_items for all using (true) with check (true);
+create policy "public access" on ordenes_cambio for all using (true) with check (true);
+create policy "public access" on facturas for all using (true) with check (true);
+create policy "public access" on ai_analisis for all using (true) with check (true);
