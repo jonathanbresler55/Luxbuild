@@ -3,35 +3,21 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  LayoutDashboard,
-  FolderOpen,
-  FileText,
-  Calendar,
-  Camera,
-  Users,
-  DollarSign,
-  ShoppingCart,
-  Building2,
-  Target,
-  BookOpen,
-  TrendingUp,
-  Sparkles,
-  Receipt,
-  ChevronRight,
+  LayoutDashboard, FolderOpen, FileText, Calendar,
+  Camera, Users, DollarSign, ShoppingCart, Building2,
+  Target, BookOpen, TrendingUp, Sparkles, Receipt, ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navSections = [
   {
     label: "General",
-    color: "bg-zinc-600",
-    items: [
-      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    ],
+    dot: "bg-zinc-500",
+    items: [{ href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }],
   },
   {
     label: "CRM Comercial",
-    color: "bg-violet-500",
+    dot: "bg-[#c9a566]",
     items: [
       { href: "/clients", label: "Clientes", icon: Users },
       { href: "/leads", label: "Leads & Oportunidades", icon: Target },
@@ -40,7 +26,7 @@ const navSections = [
   },
   {
     label: "Ejecución de Obra",
-    color: "bg-blue-500",
+    dot: "bg-sky-400",
     items: [
       { href: "/projects", label: "Proyectos", icon: FolderOpen },
       { href: "/schedule", label: "Cronograma", icon: Calendar },
@@ -50,7 +36,7 @@ const navSections = [
   },
   {
     label: "Finanzas",
-    color: "bg-emerald-500",
+    dot: "bg-emerald-400",
     items: [
       { href: "/prices", label: "Base de Precios", icon: DollarSign },
       { href: "/purchases", label: "Compras / OC", icon: ShoppingCart },
@@ -60,10 +46,8 @@ const navSections = [
   },
   {
     label: "Inteligencia AI",
-    color: "bg-amber-500",
-    items: [
-      { href: "/ai", label: "Agentes AI", icon: Sparkles },
-    ],
+    dot: "bg-violet-400",
+    items: [{ href: "/ai", label: "Agentes AI", icon: Sparkles }],
   },
 ];
 
@@ -71,25 +55,25 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-60 min-h-screen bg-[#0f1117] text-white flex flex-col shrink-0 border-r border-white/5">
+    <aside className="w-[220px] min-h-screen bg-[#0e0f14] text-white flex flex-col shrink-0 border-r border-white/[0.05]">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-5 py-4 border-b border-white/5">
-        <div className="w-9 h-9 rounded-xl bg-amber-500 flex items-center justify-center shrink-0">
-          <Building2 size={20} className="text-black" />
+      <div className="flex items-center gap-3 px-5 py-[18px] border-b border-white/[0.06]">
+        <div className="w-8 h-8 rounded-lg bg-[#c9a566] flex items-center justify-center shrink-0">
+          <Building2 size={17} className="text-[#0e0f14]" />
         </div>
         <div>
-          <p className="font-bold text-[15px] leading-tight tracking-tight">LUXBUILD</p>
-          <p className="text-[11px] text-zinc-500 font-medium">Project Management</p>
+          <p className="font-bold text-[14px] leading-tight tracking-tight text-white">LUXBUILD</p>
+          <p className="text-[10px] text-zinc-500 font-medium tracking-wide">Project Management</p>
         </div>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-2 py-3 space-y-4 overflow-y-auto">
+      <nav className="flex-1 px-3 py-4 space-y-5 overflow-y-auto">
         {navSections.map((section) => (
           <div key={section.label}>
-            <div className="flex items-center gap-2 px-2 mb-1.5">
-              <div className={`w-1.5 h-1.5 rounded-full ${section.color}`} />
-              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+            <div className="flex items-center gap-2 px-2 mb-1">
+              <div className={`w-1 h-1 rounded-full ${section.dot}`} />
+              <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-zinc-600">
                 {section.label}
               </p>
             </div>
@@ -101,18 +85,18 @@ export default function Sidebar() {
                     key={href}
                     href={href}
                     className={cn(
-                      "group flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-all",
+                      "group flex items-center gap-2.5 px-2.5 py-[7px] rounded-lg text-[12.5px] font-medium transition-all",
                       active
-                        ? "bg-white/10 text-white"
-                        : "text-zinc-400 hover:bg-white/5 hover:text-zinc-100"
+                        ? "bg-white/[0.07] text-white"
+                        : "text-zinc-500 hover:bg-white/[0.04] hover:text-zinc-300"
                     )}
                   >
                     <Icon
-                      size={15}
-                      className={active ? "text-amber-400" : "text-zinc-500 group-hover:text-zinc-300"}
+                      size={14}
+                      className={active ? "text-[#c9a566]" : "text-zinc-600 group-hover:text-zinc-400"}
                     />
-                    <span className="flex-1">{label}</span>
-                    {active && <ChevronRight size={12} className="text-zinc-500" />}
+                    <span className="flex-1 leading-none">{label}</span>
+                    {active && <div className="w-1 h-1 rounded-full bg-[#c9a566]" />}
                   </Link>
                 );
               })}
@@ -121,8 +105,8 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className="px-4 py-3 border-t border-white/5">
-        <p className="text-[11px] text-zinc-600 font-medium">© 2025 LUXBUILD</p>
+      <div className="px-4 py-3 border-t border-white/[0.05]">
+        <p className="text-[10px] text-zinc-700 font-medium">© 2025 LUXBUILD</p>
       </div>
     </aside>
   );
