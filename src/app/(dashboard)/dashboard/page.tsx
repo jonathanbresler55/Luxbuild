@@ -3,8 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
   FolderOpen, FileText, DollarSign, TrendingUp,
-  AlertTriangle, CheckCircle2, Clock, Target,
-  ArrowUpRight, ArrowDownRight,
+  AlertTriangle, CheckCircle2, Clock,
 } from "lucide-react";
 
 const kpis = [
@@ -46,12 +45,12 @@ const kpis = [
   },
 ];
 
-const pipelineStages = [
-  { label: "Nuevo",        count: 0, color: "bg-zinc-400"   },
-  { label: "Contactado",   count: 0, color: "bg-blue-400"   },
-  { label: "Propuesta",    count: 0, color: "bg-violet-400" },
-  { label: "Negociación",  count: 0, color: "bg-amber-400"  },
-  { label: "Ganado",       count: 0, color: "bg-emerald-400" },
+const cotizacionStages = [
+  { label: "Borrador",    count: 0, color: "bg-zinc-400"    },
+  { label: "Enviada",     count: 0, color: "bg-blue-400"    },
+  { label: "Negociación", count: 0, color: "bg-amber-400"   },
+  { label: "Ganada",      count: 0, color: "bg-emerald-400" },
+  { label: "Perdida",     count: 0, color: "bg-red-400"     },
 ];
 
 export default function DashboardPage() {
@@ -114,11 +113,11 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-        {/* Pipeline CRM — Monday Kanban-inspired */}
+        {/* Cotizaciones CRM */}
         <div className="bg-white rounded-2xl shadow-sm border border-zinc-100 p-5">
-          <h2 className="font-semibold text-zinc-900 text-sm mb-4">Pipeline Comercial</h2>
+          <h2 className="font-semibold text-zinc-900 text-sm mb-4">Estado de Cotizaciones</h2>
           <div className="space-y-2.5">
-            {pipelineStages.map(({ label, count, color }) => (
+            {cotizacionStages.map(({ label, count, color }) => (
               <div key={label} className="flex items-center gap-3">
                 <div className={`w-2 h-2 rounded-full shrink-0 ${color}`} />
                 <div className="flex-1 flex items-center justify-between">

@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, FolderOpen, FileText, Calendar,
   Camera, Users, DollarSign, ShoppingCart, Building2,
-  Target, BookOpen, TrendingUp, Sparkles, Receipt, ChevronRight,
+  BookOpen, TrendingUp, Sparkles, Receipt, ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -20,7 +20,6 @@ const navSections = [
     dot: "bg-[#c9a566]",
     items: [
       { href: "/clients", label: "Clientes", icon: Users },
-      { href: "/leads", label: "Leads & Oportunidades", icon: Target },
       { href: "/quotes", label: "Cotizaciones", icon: FileText },
     ],
   },
